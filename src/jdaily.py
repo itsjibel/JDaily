@@ -16,7 +16,7 @@ class JDailyWindow(QMainWindow):
         self.layout = QVBoxLayout()
 
         self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)  # Allow the scroll area to resize its content
+        self.scroll_area.setWidgetResizable(True)
         self.job_list_widget = QListWidget()
         self.scroll_area.setWidget(self.job_list_widget)
 
@@ -67,7 +67,7 @@ class JDailyWindow(QMainWindow):
         self.job_list_widget.addItem(job_item)
         self.stacked_widget.setCurrentWidget(self.main_widget)
 
-if __name__ == "__main__":
+def run():
     app = QApplication(sys.argv)
     window = JDailyWindow()
     window.show()
