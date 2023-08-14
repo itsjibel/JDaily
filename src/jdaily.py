@@ -61,10 +61,10 @@ class JDailyWindow(QMainWindow):
 
     def setup_submit_button(self, layout, new_job_widget):
         submit_button = QPushButton("Submit")
-        submit_button.clicked.connect(lambda: self.return_to_main(new_job_widget))
+        submit_button.clicked.connect(lambda: self.return_to_main())
         layout.addWidget(submit_button)
 
-    def return_to_main(self, new_job_widget):
+    def return_to_main(self):
         job_name = self.description_input.text()
         job_order = self.order_input.text()
         self.jobs.append({"description": job_name, "order": job_order})
@@ -78,6 +78,3 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
