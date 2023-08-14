@@ -1,5 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout
 
 class JDailyWindow(QMainWindow):
     def __init__(self):
@@ -67,14 +68,54 @@ class JDailyWindow(QMainWindow):
     def return_to_main(self):
         job_name = self.description_input.text()
         job_order = self.order_input.text()
+        if not job_order:
+            job_order = str(len(self.jobs) + 1)
         self.jobs.append({"description": job_name, "order": job_order})
 
-        job_item = QListWidgetItem(f"Description: {job_name}, Order: {job_order}")
-        self.job_list_widget.addItem(job_item)
+        self.sort_jobs_by_order()  # Sort the jobs by order
+        self.update_job_list_widget()
+
         self.stacked_widget.setCurrentWidget(self.main_widget)
+
+    def sort_jobs_by_order(self):
+        self.jobs.sort(key=lambda x: int(x["order"]))
+
+    def update_job_list_widget(self):
+        self.job_list_widget.clear()
+        for job in self.jobs:
+            description = job["description"]
+            order = job["order"]
+            item_text = f"{order}. {description}"
+            job_item = QListWidgetItem()
+            check_box = QCheckBox(item_text)
+            layout = QHBoxLayout()
+            layout.addWidget(check_box)
+            widget = QWidget()
+            widget.setLayout(layout)
+            job_item.setSizeHint(widget.sizeHint())
+            self.job_list_widget.addItem(job_item)
+            self.job_list_widget.setItemWidget(job_item, widget)
+
+            # Check the checkbox if job was previously checked
+            if job.get("checked", False):
+                check_box.setChecked(True)
+
+            # Connect the checkbox to a slot for checking
+            check_box.stateChanged.connect(self.on_checkbox_changed)
+
+    def on_checkbox_changed(self, state):
+        sender = self.sender()
+        for job in self.jobs:
+            widget = self.job_list_widget.itemWidget(self.job_list_widget.item(self.jobs.index(job)))
+            checkbox = widget.findChild(QCheckBox)
+            if sender == checkbox:
+                job["checked"] = state == Qt.Checked
 
 def run():
     app = QApplication(sys.argv)
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
