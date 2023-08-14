@@ -72,7 +72,7 @@ class JDailyWindow(QMainWindow):
             job_order = str(len(self.jobs) + 1)
         self.jobs.append({"description": job_name, "order": job_order})
 
-        self.sort_jobs_by_order()  # Sort the jobs by order
+        self.sort_jobs_by_order()
         self.update_job_list_widget()
 
         self.stacked_widget.setCurrentWidget(self.main_widget)
@@ -96,11 +96,9 @@ class JDailyWindow(QMainWindow):
             self.job_list_widget.addItem(job_item)
             self.job_list_widget.setItemWidget(job_item, widget)
 
-            # Check the checkbox if job was previously checked
             if job.get("checked", False):
                 check_box.setChecked(True)
 
-            # Connect the checkbox to a slot for checking
             check_box.stateChanged.connect(self.on_checkbox_changed)
 
     def on_checkbox_changed(self, state):
@@ -116,6 +114,3 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
