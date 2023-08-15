@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QSizePolicy, QToolBar, QAction, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox
 
 class JDailyWindow(QMainWindow):
     def __init__(self):
@@ -43,7 +43,7 @@ class JDailyWindow(QMainWindow):
         toolbar.addAction(load_action)
 
         new_action = QAction("New", self)
-        new_action.triggered.connect(self.new_jobs)
+        new_action.triggered.connect(self.create_new_jobs_set)
         toolbar.addAction(new_action)
 
     def setup_job_list_widget(self):
@@ -158,13 +158,13 @@ class JDailyWindow(QMainWindow):
                     parts = line.strip().split(",")
                     if len(parts) >= 2:
                         description, order = parts[:2]
-                        checked = parts[2] if len(parts) >= 3 else False
+                        checked = parts[2].lower() == 'true' if len(parts) >= 3 else False
                         self.jobs.append({"description": description, "order": order, "checked": checked})
 
             self.update_job_list_widget()
             self.stacked_widget.setCurrentWidget(self.main_widget)
 
-    def new_jobs(self):
+    def create_new_jobs_set(self):
         self.jobs.clear()
         self.job_list_widget.clear()
         self.stacked_widget.setCurrentWidget(self.main_widget)
