@@ -1,6 +1,7 @@
 import sys
+import json
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QSizePolicy, QFileDialog, QAction, QToolBar, QMessageBox
 
 class JDailyWindow(QMainWindow):
     def __init__(self):
@@ -15,6 +16,24 @@ class JDailyWindow(QMainWindow):
         self.setCentralWidget(self.stacked_widget)
 
         self.setup_main_widget()
+
+        self.setup_toolbar()
+
+    def setup_toolbar(self):
+        toolbar = QToolBar()
+        self.addToolBar(toolbar)
+
+        new_action = QAction("New", self)
+        new_action.triggered.connect(self.new_jobs)
+        toolbar.addAction(new_action)
+
+        save_action = QAction("Save", self)
+        save_action.triggered.connect(self.save_jobs)
+        toolbar.addAction(save_action)
+
+        load_action = QAction("Load", self)
+        load_action.triggered.connect(self.load_jobs)
+        toolbar.addAction(load_action)
 
     def setup_main_widget(self):
         self.main_widget = QWidget()
@@ -68,8 +87,14 @@ class JDailyWindow(QMainWindow):
     def return_to_main(self):
         job_name = self.description_input.text()
         job_order = self.order_input.text()
+        
+        if not job_name:
+            QMessageBox.critical(self, "Error", "Job description cannot be empty.")
+            return
+
         if not job_order:
             job_order = str(len(self.jobs) + 1)
+
         self.jobs.append({"description": job_name, "order": job_order})
 
         self.sort_jobs_by_order()
@@ -109,8 +134,38 @@ class JDailyWindow(QMainWindow):
             if sender == checkbox:
                 job["checked"] = state == Qt.Checked
 
+    def new_jobs(self):
+        self.jobs.clear()
+        self.update_job_list_widget()
+
+    def save_jobs(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Jobs", "", "JDaily Files (*.jdaily)")
+        if file_path:
+            self.save_jobs_to_file(file_path)
+            QMessageBox.information(self, "Save Jobs", "Jobs have been saved.")
+
+    def load_jobs(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Load Jobs", "", "JDaily Files (*.jdaily)")
+        if file_path:
+            jobs = self.load_jobs_from_file(file_path)
+            self.jobs.clear()
+            self.jobs.extend(jobs)
+            self.update_job_list_widget()
+            QMessageBox.information(self, "Load Jobs", "Jobs have been loaded.")
+
+    def save_jobs_to_file(self, file_path):
+        with open(file_path, "w") as file:
+            json.dump(self.jobs, file)
+
+    def load_jobs_from_file(self, file_path):
+        with open(file_path, "r") as file:
+            return json.load(file)
+
 def run():
     app = QApplication(sys.argv)
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
