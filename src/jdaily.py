@@ -8,7 +8,7 @@ class JDailyWindow(QMainWindow):
         super().__init__()
 
         self.jobs = []
-        self.current_filename = "new_routine.jdaily"
+        self.current_filename = ""
         self.modified = False
 
         self.setWindowTitle("JDaily")
@@ -213,6 +213,3 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
