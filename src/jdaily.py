@@ -115,7 +115,7 @@ class JDailyWindow(QMainWindow):
 
     def update_job_list_widget(self):
         self.job_list_widget.clear()
-        for job in self.jobs:
+        for index, job in enumerate(self.jobs):
             description = job["description"]
             order = job["order"]
 
@@ -148,12 +148,18 @@ class JDailyWindow(QMainWindow):
             check_box.stateChanged.connect(self.on_checkbox_changed)
 
             # Connect the trash button click to delete the job
-            trash_button.clicked.connect(lambda _, job=job: self.delete_job(job))
+            trash_button.clicked.connect(lambda _, index=index: self.delete_job(index))
 
-    def delete_job(self, job):
-        self.jobs.remove(job)
+    def delete_job(self, index):
+        removed_job = self.jobs.pop(index)
         self.modified = True
+        self.update_order_after_removal(index)
         self.update_job_list_widget()
+
+    def update_order_after_removal(self, removed_index):
+        for index, job in enumerate(self.jobs):
+            if int(job["order"]) > removed_index + 1:
+                job["order"] = str(int(job["order"]) - 1)
 
     def on_checkbox_changed(self, state):
         sender = self.sender()
