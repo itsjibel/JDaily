@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout,
                              QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox)
 
@@ -117,14 +118,27 @@ class JDailyWindow(QMainWindow):
         for job in self.jobs:
             description = job["description"]
             order = job["order"]
+
             item_text = f"{order}. {description}"
             job_item = QListWidgetItem()
-            check_box = QCheckBox(item_text)
+
             layout = QHBoxLayout()
+
+            # Add trash icon button
+            trash_icon = QIcon("path_to_your_trash_icon.png")  # Replace with the path to your trash icon image
+            trash_button = QPushButton("Remove")
+            trash_button.setIcon(trash_icon)
+            trash_button.setFixedSize(trash_button.sizeHint())  # Set a fixed size for the remove button
+            layout.addWidget(trash_button)
+
+            # Add checkbox
+            check_box = QCheckBox(item_text)
             layout.addWidget(check_box)
+
             widget = QWidget()
             widget.setLayout(layout)
             job_item.setSizeHint(widget.sizeHint())
+
             self.job_list_widget.addItem(job_item)
             self.job_list_widget.setItemWidget(job_item, widget)
 
@@ -132,6 +146,14 @@ class JDailyWindow(QMainWindow):
                 check_box.setChecked(True)
 
             check_box.stateChanged.connect(self.on_checkbox_changed)
+
+            # Connect the trash button click to delete the job
+            trash_button.clicked.connect(lambda _, job=job: self.delete_job(job))
+
+    def delete_job(self, job):
+        self.jobs.remove(job)
+        self.modified = True
+        self.update_job_list_widget()
 
     def on_checkbox_changed(self, state):
         sender = self.sender()
@@ -213,3 +235,6 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
