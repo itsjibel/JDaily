@@ -1,8 +1,10 @@
 import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout,
-                             QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox)
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout,
+    QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox
+)
 
 class JDailyWindow(QMainWindow):
     def __init__(self):
@@ -18,6 +20,9 @@ class JDailyWindow(QMainWindow):
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 
+        self.setup_ui()
+
+    def setup_ui(self):
         self.setup_main_widget()
         self.setup_toolbar()
 
@@ -38,17 +43,16 @@ class JDailyWindow(QMainWindow):
         toolbar = QToolBar()
         self.addToolBar(toolbar)
 
-        save_action = QAction("Save", self)
-        save_action.triggered.connect(self.save_jobs)
-        toolbar.addAction(save_action)
+        actions = [
+            ("Save", self.save_jobs),
+            ("Load", self.load_jobs),
+            ("New", self.create_new_jobs_set)
+        ]
 
-        load_action = QAction("Load", self)
-        load_action.triggered.connect(self.load_jobs)
-        toolbar.addAction(load_action)
-
-        new_action = QAction("New", self)
-        new_action.triggered.connect(self.create_new_jobs_set)
-        toolbar.addAction(new_action)
+        for label, function in actions:
+            action = QAction(label, self)
+            action.triggered.connect(function)
+            toolbar.addAction(action)
 
     def setup_job_list_widget(self):
         self.scroll_area = QScrollArea()
@@ -84,7 +88,7 @@ class JDailyWindow(QMainWindow):
 
     def setup_submit_button(self, layout, new_job_widget):
         submit_button = QPushButton("Submit")
-        submit_button.clicked.connect(lambda: self.return_to_main(new_job_widget))
+        submit_button.clicked.connect(lambda: self.save_new_job(new_job_widget))
         layout.addWidget(submit_button)
 
     def setup_back_button(self, layout):
@@ -92,23 +96,35 @@ class JDailyWindow(QMainWindow):
         back_button.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.main_widget))
         layout.addWidget(back_button)
 
-    def return_to_main(self, new_job_widget):
+    def save_new_job(self, new_job_widget):
         job_name = self.description_input.text()
         job_order = self.order_input.text()
+
         if not job_name:
             QMessageBox.critical(self, "Error", "Job description cannot be empty.")
             return
 
         if not job_order:
             job_order = str(len(self.jobs) + 1)
-        self.jobs.append({"description": job_name, "order": job_order})
+        else:
+            try:
+                new_order = int(job_order)
+                if new_order < 1 or new_order > len(self.jobs) + 1:
+                    QMessageBox.critical(self, "Error", "Invalid order. Order must be between 1 and the number of jobs plus 1.")
+                    return
+            except ValueError:
+                QMessageBox.critical(self, "Error", "Invalid order. Order must be a valid integer.")
+                return
 
+            for job in self.jobs:
+                if int(job["order"]) >= new_order:
+                    job["order"] = str(int(job["order"]) + 1)
+
+        self.jobs.append({"description": job_name, "order": job_order})
         self.sort_jobs_by_order()
         self.update_job_list_widget()
-        self.modified = True  # Update the modified flag
-
+        self.modified = True
         self.stacked_widget.setCurrentWidget(self.main_widget)
-
 
     def sort_jobs_by_order(self):
         self.jobs.sort(key=lambda x: int(x["order"]))
@@ -124,19 +140,16 @@ class JDailyWindow(QMainWindow):
 
             layout = QHBoxLayout()
 
-            # Add edit button
             edit_button = QPushButton("Edit")
             edit_button.setFixedWidth(edit_button.sizeHint().width())
             layout.addWidget(edit_button)
 
-            # Add trash icon button
-            trash_icon = QIcon("path_to_your_trash_icon.png")  # Replace with the path to your trash icon image
+            trash_icon = QIcon("path_to_your_trash_icon.png")
             trash_button = QPushButton("Remove")
             trash_button.setIcon(trash_icon)
-            trash_button.setFixedWidth(trash_button.sizeHint().width())  # Set a fixed width for the remove button
+            trash_button.setFixedWidth(trash_button.sizeHint().width())
             layout.addWidget(trash_button)
 
-            # Add checkbox
             check_box = QCheckBox(item_text)
             layout.addWidget(check_box)
 
@@ -152,10 +165,7 @@ class JDailyWindow(QMainWindow):
 
             check_box.stateChanged.connect(self.on_checkbox_changed)
 
-            # Connect the edit button click to edit the job
             edit_button.clicked.connect(lambda _, index=index: self.edit_job(index))
-
-            # Connect the trash button click to delete the job
             trash_button.clicked.connect(lambda _, index=index: self.delete_job(index))
 
     def edit_job(self, index):
@@ -165,18 +175,16 @@ class JDailyWindow(QMainWindow):
 
         self.editing_index = index
 
-        # Create a new job edit widget similar to the add_new_job_widget
         edit_job_widget = QWidget()
         edit_job_layout = QFormLayout()
 
         self.setup_description_input(edit_job_layout)
         self.setup_order_input(edit_job_layout)
-        self.setup_save_button(edit_job_layout, edit_job_widget)  # Add the "Save" button
+        self.setup_save_button(edit_job_layout, edit_job_widget)
         self.setup_back_button(edit_job_layout)
 
         edit_job_widget.setLayout(edit_job_layout)
 
-        # Set the current job details in the input fields
         self.description_input.setText(description)
         self.order_input.setText(order)
 
@@ -208,7 +216,6 @@ class JDailyWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", "Invalid order. Order must be a valid integer.")
                 return
 
-        # Check if the new order conflicts with existing jobs
         for index, job in enumerate(self.jobs):
             if index != self.editing_index and int(job["order"]) == new_order:
                 QMessageBox.critical(self, "Error", "Another job already has the same order. Choose a different order.")
@@ -221,7 +228,6 @@ class JDailyWindow(QMainWindow):
         self.update_job_list_widget()
         self.modified = True
 
-        # Return to the main widget after saving the edited job
         self.stacked_widget.setCurrentWidget(self.main_widget)
 
     def delete_job(self, index):
@@ -315,6 +321,3 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
