@@ -16,6 +16,7 @@ class JDailyWindow(QMainWindow):
 
         self.setup_main_widget()
         self.setup_toolbar()
+        self.last_used_filename = "new_routine.jdaily"
 
     def setup_main_widget(self):
         self.main_widget = QWidget()
@@ -137,19 +138,17 @@ class JDailyWindow(QMainWindow):
                 job["checked"] = state == Qt.Checked
 
     def save_jobs(self):
-        default_filename = "new_routine.jdaily"
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save Jobs", default_filename, "JDaily Files (*.jdaily)")
-        if file_name:
-            with open(file_name, "w") as file:
-                for job in self.jobs:
-                    description = job["description"]
-                    order = job["order"]
-                    checked = job.get("checked", False)
-                    file.write(f"{description},{order},{checked}\n")
+        with open(self.current_filename, "w") as file:
+            for job in self.jobs:
+                description = job["description"]
+                order = job["order"]
+                checked = job.get("checked", False)
+                file.write(f"{description},{order},{checked}\n")
 
     def load_jobs(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Load Jobs", "", "JDaily Files (*.jdaily)")
         if file_name:
+            self.current_filename = file_name  # Update the current jdaily file name
             self.jobs.clear()
             self.job_list_widget.clear()
             with open(file_name, "r") as file:
@@ -174,3 +173,6 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
