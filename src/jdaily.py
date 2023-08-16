@@ -1,12 +1,15 @@
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout, QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout,
+                             QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox)
 
 class JDailyWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.jobs = []
+        self.current_filename = "new_routine.jdaily"
+        self.modified = False
 
         self.setWindowTitle("JDaily")
         self.setGeometry(100, 100, 350, 400)
@@ -16,7 +19,6 @@ class JDailyWindow(QMainWindow):
 
         self.setup_main_widget()
         self.setup_toolbar()
-        self.last_used_filename = "new_routine.jdaily"
 
     def setup_main_widget(self):
         self.main_widget = QWidget()
@@ -136,8 +138,14 @@ class JDailyWindow(QMainWindow):
             checkbox = widget.findChild(QCheckBox)
             if sender == checkbox:
                 job["checked"] = state == Qt.Checked
+                self.modified = True
 
     def save_jobs(self):
+        if not self.current_filename:
+            self.current_filename, _ = QFileDialog.getSaveFileName(self, "Save Jobs", "new_routine.jdaily", "JDaily Files (*.jdaily)")
+            if not self.current_filename:
+                return
+
         with open(self.current_filename, "w") as file:
             for job in self.jobs:
                 description = job["description"]
@@ -145,10 +153,11 @@ class JDailyWindow(QMainWindow):
                 checked = job.get("checked", False)
                 file.write(f"{description},{order},{checked}\n")
 
+        self.modified = False
+
     def load_jobs(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Load Jobs", "", "JDaily Files (*.jdaily)")
         if file_name:
-            self.current_filename = file_name  # Update the current jdaily file name
             self.jobs.clear()
             self.job_list_widget.clear()
             with open(file_name, "r") as file:
@@ -164,15 +173,41 @@ class JDailyWindow(QMainWindow):
             self.stacked_widget.setCurrentWidget(self.main_widget)
 
     def create_new_jobs_set(self):
+        if self.modified:
+            reply = QMessageBox.question(
+                self, "Unsaved Changes",
+                "You have unsaved changes. Do you want to save before creating a new set?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+            if reply == QMessageBox.Save:
+                self.save_jobs()
+            elif reply == QMessageBox.Cancel:
+                return
+
         self.jobs.clear()
         self.job_list_widget.clear()
         self.stacked_widget.setCurrentWidget(self.main_widget)
+        self.modified = False
+
+    def closeEvent(self, event):
+        if self.modified:
+            reply = QMessageBox.question(
+                self, "Unsaved Changes",
+                "You have unsaved changes. Do you want to save before closing?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+            if reply == QMessageBox.Save:
+                self.save_jobs()
+            elif reply == QMessageBox.Cancel:
+                event.ignore()
+                return
+
+        event.accept()
 
 def run():
     app = QApplication(sys.argv)
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
