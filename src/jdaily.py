@@ -124,11 +124,16 @@ class JDailyWindow(QMainWindow):
 
             layout = QHBoxLayout()
 
+            # Add edit button
+            edit_button = QPushButton("Edit")
+            edit_button.setFixedWidth(edit_button.sizeHint().width())
+            layout.addWidget(edit_button)
+
             # Add trash icon button
             trash_icon = QIcon("path_to_your_trash_icon.png")  # Replace with the path to your trash icon image
             trash_button = QPushButton("Remove")
             trash_button.setIcon(trash_icon)
-            trash_button.setFixedSize(trash_button.sizeHint())  # Set a fixed size for the remove button
+            trash_button.setFixedWidth(trash_button.sizeHint().width())  # Set a fixed width for the remove button
             layout.addWidget(trash_button)
 
             # Add checkbox
@@ -147,8 +152,77 @@ class JDailyWindow(QMainWindow):
 
             check_box.stateChanged.connect(self.on_checkbox_changed)
 
+            # Connect the edit button click to edit the job
+            edit_button.clicked.connect(lambda _, index=index: self.edit_job(index))
+
             # Connect the trash button click to delete the job
             trash_button.clicked.connect(lambda _, index=index: self.delete_job(index))
+
+    def edit_job(self, index):
+        job = self.jobs[index]
+        description = job["description"]
+        order = job["order"]
+
+        self.editing_index = index
+
+        # Create a new job edit widget similar to the add_new_job_widget
+        edit_job_widget = QWidget()
+        edit_job_layout = QFormLayout()
+
+        self.setup_description_input(edit_job_layout)
+        self.setup_order_input(edit_job_layout)
+        self.setup_save_button(edit_job_layout, edit_job_widget)  # Add the "Save" button
+        self.setup_back_button(edit_job_layout)
+
+        edit_job_widget.setLayout(edit_job_layout)
+
+        # Set the current job details in the input fields
+        self.description_input.setText(description)
+        self.order_input.setText(order)
+
+        self.stacked_widget.addWidget(edit_job_widget)
+        self.stacked_widget.setCurrentWidget(edit_job_widget)
+
+    def setup_save_button(self, layout, edit_job_widget):
+        save_button = QPushButton("Save")
+        save_button.clicked.connect(lambda: self.save_edited_job(edit_job_widget))
+        layout.addWidget(save_button)
+
+    def save_edited_job(self, edit_job_widget):
+        job_name = self.description_input.text()
+        job_order = self.order_input.text()
+
+        if not job_name:
+            QMessageBox.critical(self, "Error", "Job description cannot be empty.")
+            return
+
+        if not job_order:
+            job_order = str(len(self.jobs) + 1)
+        else:
+            try:
+                new_order = int(job_order)
+                if new_order < 1 or new_order > len(self.jobs):
+                    QMessageBox.critical(self, "Error", "Invalid order. Order must be between 1 and the number of jobs.")
+                    return
+            except ValueError:
+                QMessageBox.critical(self, "Error", "Invalid order. Order must be a valid integer.")
+                return
+
+        # Check if the new order conflicts with existing jobs
+        for index, job in enumerate(self.jobs):
+            if index != self.editing_index and int(job["order"]) == new_order:
+                QMessageBox.critical(self, "Error", "Another job already has the same order. Choose a different order.")
+                return
+
+        edited_job = {"description": job_name, "order": str(new_order)}
+        self.jobs[self.editing_index] = edited_job
+
+        self.sort_jobs_by_order()
+        self.update_job_list_widget()
+        self.modified = True
+
+        # Return to the main widget after saving the edited job
+        self.stacked_widget.setCurrentWidget(self.main_widget)
 
     def delete_job(self, index):
         removed_job = self.jobs.pop(index)
