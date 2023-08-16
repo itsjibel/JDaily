@@ -104,8 +104,10 @@ class JDailyWindow(QMainWindow):
 
         self.sort_jobs_by_order()
         self.update_job_list_widget()
+        self.modified = True  # Update the modified flag
 
         self.stacked_widget.setCurrentWidget(self.main_widget)
+
 
     def sort_jobs_by_order(self):
         self.jobs.sort(key=lambda x: int(x["order"]))
@@ -211,3 +213,6 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
