@@ -46,6 +46,7 @@ class JDailyWindow(QMainWindow):
 
         actions = [
             ("Save", self.save_jobs),
+            ("Save As...", self.save_jobs_as),
             ("Load", self.load_jobs),
             ("New", self.create_new_jobs_set)
         ]
@@ -260,6 +261,24 @@ class JDailyWindow(QMainWindow):
                 return
 
             self.initial_directory = self.current_filename
+
+        with open(self.current_filename, "w") as file:
+            for job in self.jobs:
+                description = job["description"]
+                order = job["order"]
+                checked = job.get("checked", False)
+                file.write(f"{description},{order},{checked}\n")
+
+        self.modified = False
+
+    def save_jobs_as(self):
+        self.current_filename, _ = QFileDialog.getSaveFileName(
+            self, "Save Jobs As...", self.initial_directory, "JDaily Files (*.jdaily)"
+        )
+        if not self.current_filename:
+            return
+
+        self.initial_directory = self.current_filename
 
         with open(self.current_filename, "w") as file:
             for job in self.jobs:
