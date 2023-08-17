@@ -12,6 +12,7 @@ class JDailyWindow(QMainWindow):
 
         self.jobs = []
         self.current_filename = ""
+        self.initial_directory = ""
         self.modified = False
 
         self.setWindowTitle("JDaily")
@@ -252,9 +253,13 @@ class JDailyWindow(QMainWindow):
 
     def save_jobs(self):
         if not self.current_filename:
-            self.current_filename, _ = QFileDialog.getSaveFileName(self, "Save Jobs", "new_routine.jdaily", "JDaily Files (*.jdaily)")
+            self.current_filename, _ = QFileDialog.getSaveFileName(
+                self, "Save Jobs", "new_routine.jdaily", "JDaily Files (*.jdaily)"
+            )
             if not self.current_filename:
                 return
+
+            self.initial_directory = self.current_filename
 
         with open(self.current_filename, "w") as file:
             for job in self.jobs:
@@ -266,7 +271,9 @@ class JDailyWindow(QMainWindow):
         self.modified = False
 
     def load_jobs(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Load Jobs", "", "JDaily Files (*.jdaily)")
+        file_name, _ = QFileDialog.getOpenFileName(
+            self, "Load Jobs", self.initial_directory, "JDaily Files (*.jdaily)"
+        )
         if file_name:
             self.jobs.clear()
             self.job_list_widget.clear()
@@ -281,6 +288,9 @@ class JDailyWindow(QMainWindow):
 
             self.update_job_list_widget()
             self.stacked_widget.setCurrentWidget(self.main_widget)
+
+            # Update initial directory after successful file loading
+            self.current_filename = file_name
 
     def create_new_jobs_set(self):
         if self.modified:
@@ -299,6 +309,8 @@ class JDailyWindow(QMainWindow):
         self.job_list_widget.clear()
         self.stacked_widget.setCurrentWidget(self.main_widget)
         self.modified = False
+        self.current_filename = ""
+        self.initial_directory = ""
 
     def closeEvent(self, event):
         if self.modified:
@@ -321,3 +333,6 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
