@@ -1,6 +1,5 @@
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout,
     QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox
@@ -146,9 +145,7 @@ class JDailyWindow(QMainWindow):
             edit_button.setFixedWidth(edit_button.sizeHint().width())
             layout.addWidget(edit_button)
 
-            trash_icon = QIcon("path_to_your_trash_icon.png")
             trash_button = QPushButton("Remove")
-            trash_button.setIcon(trash_icon)
             trash_button.setFixedWidth(trash_button.sizeHint().width())
             layout.addWidget(trash_button)
 
