@@ -32,20 +32,7 @@ class JDailyWindow(QMainWindow):
         self.layout = QVBoxLayout()
 
         self.setup_job_list_widget()
-
-        self.new_job_button = QPushButton("Add new job")
-        self.new_job_button.clicked.connect(self.add_new_job_widget)
-        self.layout.addWidget(self.new_job_button)
-
-        self.edit_button = QPushButton("Edit")
-        self.edit_button.setEnabled(False)
-        self.edit_button.clicked.connect(self.edit_selected_job)
-        self.layout.addWidget(self.edit_button)
-
-        self.remove_button = QPushButton("Remove")
-        self.remove_button.setEnabled(False)
-        self.remove_button.clicked.connect(self.remove_selected_job)
-        self.layout.addWidget(self.remove_button)
+        self.setup_buttons()
 
         self.main_widget.setLayout(self.layout)
         self.stacked_widget.addWidget(self.main_widget)
@@ -73,8 +60,22 @@ class JDailyWindow(QMainWindow):
         self.scroll_area.setWidget(self.job_list_widget)
 
         self.layout.addWidget(self.scroll_area)
-
         self.job_list_widget.itemSelectionChanged.connect(self.update_edit_remove_buttons)
+
+    def setup_buttons(self):
+        self.new_job_button = QPushButton("Add new job")
+        self.new_job_button.clicked.connect(self.add_new_job_widget)
+        self.layout.addWidget(self.new_job_button)
+
+        self.edit_button = QPushButton("Edit")
+        self.edit_button.setEnabled(False)
+        self.edit_button.clicked.connect(self.edit_selected_job)
+        self.layout.addWidget(self.edit_button)
+
+        self.remove_button = QPushButton("Remove")
+        self.remove_button.setEnabled(False)
+        self.remove_button.clicked.connect(self.remove_selected_job)
+        self.layout.addWidget(self.remove_button)
 
     def add_new_job_widget(self):
         new_job_widget = QWidget()
@@ -124,10 +125,10 @@ class JDailyWindow(QMainWindow):
             try:
                 new_order = int(job_order)
                 if new_order < 1 or new_order > len(self.jobs) + 1:
-                    QMessageBox.critical(self, "Error", "Invalid order. Order must be between 1 and the number of jobs plus 1.")
+                    self.show_order_error_message()
                     return
             except ValueError:
-                QMessageBox.critical(self, "Error", "Invalid order. Order must be a valid integer.")
+                self.show_order_error_message()
                 return
 
             for job in self.jobs:
@@ -146,14 +147,10 @@ class JDailyWindow(QMainWindow):
     def update_job_list_widget(self):
         self.job_list_widget.clear()
         for index, job in enumerate(self.jobs):
-            description = job["description"]
-            order = job["order"]
-
-            item_text = f"{order}. {description}"
+            item_text = f"{job['order']}. {job['description']}"
             job_item = QListWidgetItem()
 
             layout = QHBoxLayout()
-
             check_box = QCheckBox(item_text)
             layout.addWidget(check_box)
 
@@ -364,3 +361,6 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    run()
