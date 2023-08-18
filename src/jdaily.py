@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QStackedWidget, QLineEdit, QFormLayout,
     QScrollArea, QListWidget, QListWidgetItem, QCheckBox, QHBoxLayout, QToolBar, QAction, QFileDialog, QMessageBox
@@ -36,6 +37,16 @@ class JDailyWindow(QMainWindow):
         self.new_job_button.clicked.connect(self.add_new_job_widget)
         self.layout.addWidget(self.new_job_button)
 
+        self.edit_button = QPushButton("Edit")
+        self.edit_button.setEnabled(False)
+        self.edit_button.clicked.connect(self.edit_selected_job)
+        self.layout.addWidget(self.edit_button)
+
+        self.remove_button = QPushButton("Remove")
+        self.remove_button.setEnabled(False)
+        self.remove_button.clicked.connect(self.remove_selected_job)
+        self.layout.addWidget(self.remove_button)
+
         self.main_widget.setLayout(self.layout)
         self.stacked_widget.addWidget(self.main_widget)
 
@@ -62,6 +73,8 @@ class JDailyWindow(QMainWindow):
         self.scroll_area.setWidget(self.job_list_widget)
 
         self.layout.addWidget(self.scroll_area)
+
+        self.job_list_widget.itemSelectionChanged.connect(self.update_edit_remove_buttons)
 
     def add_new_job_widget(self):
         new_job_widget = QWidget()
@@ -141,14 +154,6 @@ class JDailyWindow(QMainWindow):
 
             layout = QHBoxLayout()
 
-            edit_button = QPushButton("Edit")
-            edit_button.setFixedWidth(edit_button.sizeHint().width())
-            layout.addWidget(edit_button)
-
-            trash_button = QPushButton("Remove")
-            trash_button.setFixedWidth(trash_button.sizeHint().width())
-            layout.addWidget(trash_button)
-
             check_box = QCheckBox(item_text)
             layout.addWidget(check_box)
 
@@ -164,8 +169,27 @@ class JDailyWindow(QMainWindow):
 
             check_box.stateChanged.connect(self.on_checkbox_changed)
 
-            edit_button.clicked.connect(lambda _, index=index: self.edit_job(index))
-            trash_button.clicked.connect(lambda _, index=index: self.delete_job(index))
+    def on_checkbox_changed(self, state):
+        self.update_edit_remove_buttons()
+
+    def update_edit_remove_buttons(self):
+        selected_items = self.job_list_widget.selectedItems()
+        if selected_items:
+            self.edit_button.setEnabled(True)
+            self.remove_button.setEnabled(True)
+        else:
+            self.edit_button.setEnabled(False)
+            self.remove_button.setEnabled(False)
+
+    def edit_selected_job(self):
+        selected_item = self.job_list_widget.selectedItems()[0]
+        index = self.job_list_widget.row(selected_item)
+        self.edit_job(index)
+
+    def remove_selected_job(self):
+        selected_item = self.job_list_widget.selectedItems()[0]
+        index = self.job_list_widget.row(selected_item)
+        self.delete_job(index)
 
     def edit_job(self, index):
         job = self.jobs[index]
@@ -239,15 +263,6 @@ class JDailyWindow(QMainWindow):
         for index, job in enumerate(self.jobs):
             if int(job["order"]) > removed_index + 1:
                 job["order"] = str(int(job["order"]) - 1)
-
-    def on_checkbox_changed(self, state):
-        sender = self.sender()
-        for job in self.jobs:
-            widget = self.job_list_widget.itemWidget(self.job_list_widget.item(self.jobs.index(job)))
-            checkbox = widget.findChild(QCheckBox)
-            if sender == checkbox:
-                job["checked"] = state == Qt.Checked
-                self.modified = True
 
     def save_jobs(self):
         if not self.current_filename:
@@ -349,6 +364,3 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
