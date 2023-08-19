@@ -283,7 +283,7 @@ class JDailyWindow(QMainWindow):
 
     def save_jobs_as(self):
         self.current_filename, _ = QFileDialog.getSaveFileName(
-            self, "Save Jobs As...", self.initial_directory, "JDaily Files (*.jdaily)"
+            self, "Save Jobs As...", "new_routine.jdaily", "JDaily Files (*.jdaily)"
         )
         if not self.current_filename:
             return
@@ -322,7 +322,7 @@ class JDailyWindow(QMainWindow):
             self.current_filename = file_name
 
     def create_new_jobs_set(self):
-        if self.modified:
+        if self.modified or any(job.get("checked", False) for job in self.jobs):
             reply = QMessageBox.question(
                 self, "Unsaved Changes",
                 "You have unsaved changes. Do you want to save before creating a new set?",
@@ -331,8 +331,6 @@ class JDailyWindow(QMainWindow):
             )
             if reply == QMessageBox.Save:
                 self.save_jobs()
-            elif reply == QMessageBox.Cancel:
-                return
 
         self.jobs.clear()
         self.job_list_widget.clear()
@@ -342,7 +340,7 @@ class JDailyWindow(QMainWindow):
         self.initial_directory = ""
 
     def closeEvent(self, event):
-        if self.modified:
+        if self.modified or any(job.get("checked", False) for job in self.jobs):
             reply = QMessageBox.question(
                 self, "Unsaved Changes",
                 "You have unsaved changes. Do you want to save before closing?",
@@ -362,6 +360,3 @@ def run():
     window = JDailyWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()
