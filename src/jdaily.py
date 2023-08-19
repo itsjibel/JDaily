@@ -164,9 +164,10 @@ class JDailyWindow(QMainWindow):
             if job.get("checked", False):
                 check_box.setChecked(True)
 
-            check_box.stateChanged.connect(self.on_checkbox_changed)
+            check_box.stateChanged.connect(lambda state, index=index: self.on_checkbox_changed(state, index))
 
-    def on_checkbox_changed(self, state):
+    def on_checkbox_changed(self, state, index):
+        self.jobs[index]["checked"] = state == Qt.Checked
         self.update_edit_remove_buttons()
 
     def update_edit_remove_buttons(self):
@@ -241,7 +242,7 @@ class JDailyWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", "Another job already has the same order. Choose a different order.")
                 return
 
-        edited_job = {"description": job_name, "order": str(new_order)}
+        edited_job = {"description": job_name, "order": str(new_order), "checked": self.jobs[self.editing_index].get("checked", False)}
         self.jobs[self.editing_index] = edited_job
 
         self.sort_jobs_by_order()
