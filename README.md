@@ -17,3 +17,7 @@
     git clone https://github.com/itsjibel/JDaily && cd JDaily\install\Windows
     .\installer.bat
     You can run the JDaily application by running the "JDaily.exe" file on your desktop
+
+## JDaily UI preview
+
+![image](https://github.com/itsjibel/JDaily/assets/92310427/9f682920-6cc7-4a1b-8375-870103de382c)
