@@ -2,7 +2,7 @@
 
 ## What is the job?
 
-    Job is a single duty of your routine, for example, reading 15 pages of a book is one job of your routine.
+    Job is a single duty of your routine; for example, reading 15 pages of a book is one job of your daily routine.
     Jobs also have descriptions to describe the job duty and order to specify the job order.
 
 ## Working with jobs
@@ -35,8 +35,20 @@
 
 ## Working with routine files
 
-## How to save my routine file?
+### How to save my routine file?
 
-## How to load my routine file?
+**Click the "Save" or "Save As" button on the toolbar to save the routine.**
 
-## How to create new routine?
+![image](https://github.com/itsjibel/JDaily/assets/92310427/73764fd0-91bb-4086-ab38-d85d0e11a286)
+
+### How to load my routine file?
+
+**Click the "Load" button on the toolbar to load the routine.**
+
+![image](https://github.com/itsjibel/JDaily/assets/92310427/d888e86f-360e-4c7d-8022-39da75bff256)
+
+### How to create a new routine?
+
+**Click the "New" button on the toolbar to create a new routine.**
+
+![image](https://github.com/itsjibel/JDaily/assets/92310427/9dbd51ae-7c92-4c0e-a7de-ab6c31a8893f)
