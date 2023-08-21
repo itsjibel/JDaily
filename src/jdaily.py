@@ -125,10 +125,10 @@ class JDailyWindow(QMainWindow):
             try:
                 new_order = int(job_order)
                 if new_order < 1 or new_order > len(self.jobs) + 1:
-                    self.show_order_error_message()
+                    QMessageBox.critical(self, "Error", "Invalid order. Order must be between 1 and the number of jobs plus 1.")
                     return
             except ValueError:
-                self.show_order_error_message()
+                QMessageBox.critical(self, "Error", "Invalid order. Order must be a valid integer.")
                 return
 
             for job in self.jobs:
