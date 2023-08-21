@@ -32,3 +32,11 @@
 **Then modify the description you want, and save the job.**
 
 ![image](https://github.com/itsjibel/JDaily/assets/92310427/9494d7a7-b24d-4bcd-9dcd-21eb5f550f07)
+
+## Working with routine files
+
+## How to save my routine file?
+
+## How to load my routine file?
+
+## How to create new routine?
