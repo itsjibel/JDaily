@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Activate your Python environment, if you have one.
+# source "/.../venv/bin/activate"
+
 # Check if the script is run with superuser privileges
 check_sudo() {
     if [ "$EUID" -ne 0 ]; then
@@ -22,22 +25,22 @@ detect_distribution() {
     fi
 }
 
-# Function to install Python on different distributions
-install_python() {
+# Function to install required packages
+install_packages() {
     case "$DISTRO" in
         "ubuntu" | "debian")
             sudo apt-get update
-            sudo apt-get install -y python3 python3-pip
+            sudo apt-get install -y python3 python3-pip python3-pyqt5
             ;;
 
         "centos" | "rhel" | "fedora")
             sudo yum -y update
-            sudo yum install -y python3 python3-pip
+            sudo yum install -y python3 python3-pip python3-qt5
             ;;
 
         "arch")
             sudo pacman -Syu --noconfirm
-            sudo pacman -S --noconfirm python python-pip
+            sudo pacman -S --noconfirm python python-pip python-pyqt5
             ;;
 
         *)
@@ -47,44 +50,29 @@ install_python() {
     esac
 }
 
-# Function to install PyQt5
-install_pyqt5() {
-    case "$DISTRO" in
-        "ubuntu" | "debian")
-            sudo apt-get install -y python3-pyqt5
-            ;;
-
-        "centos" | "rhel" | "fedora")
-            sudo yum install -y python3-qt5
-            ;;
-
-        "arch")
-            sudo pacman -S --noconfirm python-pyqt5
-            ;;
-
-        *)
-            echo "Unsupported distribution: $DISTRO"
-            exit 1
-            ;;
-    esac
+# Function to install PyInstaller
+install_pyinstaller() {
+    echo "Installing PyInstaller..."
+    sudo pip3 install pyinstaller
 }
 
-# Function to compile and create the executable
-compile_and_create_executable() {
-    chmod +x ../../src/main.py
-    echo '#!/bin/bash' > jdaily
-    echo 'python3 ../../src/main.py "$@"' >> jdaily
-    sudo mv jdaily /usr/bin/
-    cd ..
-    chmod +x /usr/bin/jdaily
+# Function to compile using PyInstaller
+compile_using_pyinstaller() {
+    cd ../../src
+    pyinstaller --onefile main.py
+    sudo mv dist/main /usr/bin/jdaily
+    echo "Executable 'jdaily' created in /usr/bin/ for running 'main.py'!"
 }
 
 # Main execution
+check_sudo
 detect_distribution
 echo "Detected distribution: $DISTRO"
-install_python
-echo "Python installed successfully!"
-install_pyqt5
-echo "PyQt5 library installed successfully!"
-compile_and_create_executable
-echo "Executable 'jdaily' created in /usr/bin/ for running 'main.py'!"
+install_packages
+
+# Check if PyInstaller is installed, install if not
+if ! command -v pyinstaller &> /dev/null; then
+    install_pyinstaller
+fi
+
+compile_using_pyinstaller
